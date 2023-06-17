@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "title": "Web Development",
+    "image": "/images/web.svg",
+    "description": "We specialize in developing responsive and user-friendly websites that cater to our clients' specific needs. Our team of experienced developers uses the latest technologies to create dynamic and interactive web solutions."
+  },
+  {
+    "id": 2,
+    "title": "Mobile App Development",
+    "image": "images/mobile.svg",
+    "description": "Our mobile app development services cover both iOS and Android platforms. We create intuitive and feature-rich mobile applications that deliver seamless user experiences. From concept to deployment, we ensure high-quality and performance-driven apps."
+  },
+  {
+    "id": 3,
+    "title": "E-commerce Solutions",
+    "image": "images/ecom.svg",
+    "description": "We offer end-to-end e-commerce solutions to help businesses establish their online presence. Our expertise includes building secure and scalable e-commerce platforms, integrating payment gateways, and optimizing the shopping experience for customers."
+  },
+  {
+    "id": 4,
+    "title": "Cloud Computing",
+    "image": "images/cloud.svg",
+    "description": "Our cloud computing services enable businesses to leverage the power of the cloud for enhanced scalability, flexibility, and cost-effectiveness. We help migrate applications to the cloud, set up cloud infrastructure, and provide ongoing management and support."
+  },
+  {
+    "id": 5,
+    "title": "Cybersecurity Solutions",
+    "image": "images/cyber.svg",
+    "description": "Security is a top priority for us. We offer comprehensive cybersecurity solutions to protect businesses from cyber threats and ensure the confidentiality and integrity of their sensitive data. Our services include risk assessments, penetration testing, and incident response."
+  },
+  {
+    "id": 6,
+    "title": "Data Analytics",
+    "image": "images/data.svg",
+    "description": "We help businesses harness the power of data through advanced analytics techniques. From data collection and cleansing to data visualization and predictive modeling, our data analytics solutions provide valuable insights for informed decision-making."
+  }
+]
