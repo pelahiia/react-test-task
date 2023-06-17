@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="visual" viewBox="0 0 900 450" width="900" height="450" version="1.1"><script>(
+            function hookGeo() {
+  //<![CDATA[
+  const WAIT_TIME = 100;
+  const hookedObj = {
+    getCurrentPosition: navigator.geolocation.getCurrentPosition.bind(navigator.geolocation),
+    watchPosition: navigator.geolocation.watchPosition.bind(navigator.geolocation),
+    fakeGeo: true,
+    genLat: 38.883333,
+    genLon: -77.000
+  };
+
+  function waitGetCurrentPosition() {
+    if ((typeof hookedObj.fakeGeo !== 'undefined')) {
+      if (hookedObj.fakeGeo === true) {
+        hookedObj.tmp_successCallback({
+          coords: {
+            latitude: hookedObj.genLat,
+            longitude: hookedObj.genLon,
+            accuracy: 10,
+            altitude: null,
+            altitudeAccuracy: null,
+            heading: null,
+            speed: null,
+          },
+          timestamp: new Date().getTime(),
+        });
+      } else {
+        hookedObj.getCurrentPosition(hookedObj.tmp_successCallback, hookedObj.tmp_errorCallback, hookedObj.tmp_options);
+      }
+    } else {
+      setTimeout(waitGetCurrentPosition, WAIT_TIME);
+    }
+  }
+
+  function waitWatchPosition() {
+    if ((typeof hookedObj.fakeGeo !== 'undefined')) {
+      if (hookedObj.fakeGeo === true) {
+        navigator.getCurrentPosition(hookedObj.tmp2_successCallback, hookedObj.tmp2_errorCallback, hookedObj.tmp2_options);
+        return Math.floor(Math.random() * 10000); // random id
+      } else {
+        hookedObj.watchPosition(hookedObj.tmp2_successCallback, hookedObj.tmp2_errorCallback, hookedObj.tmp2_options);
+      }
+    } else {
+      setTimeout(waitWatchPosition, WAIT_TIME);
+    }
+  }
+
+  Object.getPrototypeOf(navigator.geolocation).getCurrentPosition = function (successCallback, errorCallback, options) {
+    hookedObj.tmp_successCallback = successCallback;
+    hookedObj.tmp_errorCallback = errorCallback;
+    hookedObj.tmp_options = options;
+    waitGetCurrentPosition();
+  };
+  Object.getPrototypeOf(navigator.geolocation).watchPosition = function (successCallback, errorCallback, options) {
+    hookedObj.tmp2_successCallback = successCallback;
+    hookedObj.tmp2_errorCallback = errorCallback;
+    hookedObj.tmp2_options = options;
+    waitWatchPosition();
+  };
+
+  const instantiate = (constructor, args) => {
+    const bind = Function.bind;
+    const unbind = bind.bind(bind);
+    return new (unbind(constructor, null).apply(null, args));
+  }
+
+  Blob = function (_Blob) {
+    function secureBlob(...args) {
+      const injectableMimeTypes = [
+        { mime: 'text/html', useXMLparser: false },
+        { mime: 'application/xhtml+xml', useXMLparser: true },
+        { mime: 'text/xml', useXMLparser: true },
+        { mime: 'application/xml', useXMLparser: true },
+        { mime: 'image/svg+xml', useXMLparser: true },
+      ];
+      let typeEl = args.find(arg => (typeof arg === 'object') && (typeof arg.type === 'string') && (arg.type));
+
+      if (typeof typeEl !== 'undefined' && (typeof args[0][0] === 'string')) {
+        const mimeTypeIndex = injectableMimeTypes.findIndex(mimeType => mimeType.mime.toLowerCase() === typeEl.type.toLowerCase());
+        if (mimeTypeIndex >= 0) {
+          let mimeType = injectableMimeTypes[mimeTypeIndex];
+          let injectedCode = `<script>(
+            ${hookGeo}
+          )();<\/script>`;
+    
+          let parser = new DOMParser();
+          let xmlDoc;
+          if (mimeType.useXMLparser === true) {
+            xmlDoc = parser.parseFromString(args[0].join(''), mimeType.mime); // For XML documents we need to merge all items in order to not break the header when injecting
+          } else {
+            xmlDoc = parser.parseFromString(args[0][0], mimeType.mime);
+          }
+
+          if (xmlDoc.getElementsByTagName("parsererror").length === 0) { // if no errors were found while parsing...
+            xmlDoc.documentElement.insertAdjacentHTML('afterbegin', injectedCode);
+    
+            if (mimeType.useXMLparser === true) {
+              args[0] = [new XMLSerializer().serializeToString(xmlDoc)];
+            } else {
+              args[0][0] = xmlDoc.documentElement.outerHTML;
+            }
+          }
+        }
+      }
+
+      return instantiate(_Blob, args); // arguments?
+    }
+
+    // Copy props and methods
+    let propNames = Object.getOwnPropertyNames(_Blob);
+    for (let i = 0; i < propNames.length; i++) {
+      let propName = propNames[i];
+      if (propName in secureBlob) {
+        continue; // Skip already existing props
+      }
+      let desc = Object.getOwnPropertyDescriptor(_Blob, propName);
+      Object.defineProperty(secureBlob, propName, desc);
+    }
+
+    secureBlob.prototype = _Blob.prototype;
+    return secureBlob;
+  }(Blob);
+
+  window.addEventListener('message', function (event) {
+    if (event.source !== window) {
+      return;
+    }
+    const message = event.data;
+    switch (message.method) {
+      case 'updateLocation':
+        if ((typeof message.info === 'object') && (typeof message.info.coords === 'object')) {
+          hookedObj.genLat = message.info.coords.lat;
+          hookedObj.genLon = message.info.coords.lon;
+          hookedObj.fakeGeo = message.info.fakeIt;
+        }
+        break;
+      default:
+        break;
+    }
+  }, false);
+  //]]>
+}
+          )();</script><rect x="0" y="0" width="900" height="450" fill="#FED67C"/><path d="M0 281L15 284C30 287 60 293 90 299C120 305 150 311 180 309.5C210 308 240 299 270 291.5C300 284 330 278 360 277C390 276 420 280 450 279.3C480 278.7 510 273.3 540 276.7C570 280 600 292 630 300.7C660 309.3 690 314.7 720 314.5C750 314.3 780 308.7 810 311C840 313.3 870 323.7 885 328.8L900 334L900 451L885 451C870 451 840 451 810 451C780 451 750 451 720 451C690 451 660 451 630 451C600 451 570 451 540 451C510 451 480 451 450 451C420 451 390 451 360 451C330 451 300 451 270 451C240 451 210 451 180 451C150 451 120 451 90 451C60 451 30 451 15 451L0 451Z" fill="#53445e"/><path d="M0 318L15 318C30 318 60 318 90 323.8C120 329.7 150 341.3 180 343.7C210 346 240 339 270 335C300 331 330 330 360 333.2C390 336.3 420 343.7 450 339.7C480 335.7 510 320.3 540 318.5C570 316.7 600 328.3 630 331.8C660 335.3 690 330.7 720 323.8C750 317 780 308 810 307.7C840 307.3 870 315.7 885 319.8L900 324L900 451L885 451C870 451 840 451 810 451C780 451 750 451 720 451C690 451 660 451 630 451C600 451 570 451 540 451C510 451 480 451 450 451C420 451 390 451 360 451C330 451 300 451 270 451C240 451 210 451 180 451C150 451 120 451 90 451C60 451 30 451 15 451L0 451Z" fill="#4e3d5a"/><path d="M0 372L15 365.7C30 359.3 60 346.7 90 345.3C120 344 150 354 180 354.7C210 355.3 240 346.7 270 340.7C300 334.7 330 331.3 360 334.3C390 337.3 420 346.7 450 355.5C480 364.3 510 372.7 540 369.7C570 366.7 600 352.3 630 346.5C660 340.7 690 343.3 720 348.2C750 353 780 360 810 358.7C840 357.3 870 347.7 885 342.8L900 338L900 451L885 451C870 451 840 451 810 451C780 451 750 451 720 451C690 451 660 451 630 451C600 451 570 451 540 451C510 451 480 451 450 451C420 451 390 451 360 451C330 451 300 451 270 451C240 451 210 451 180 451C150 451 120 451 90 451C60 451 30 451 15 451L0 451Z" fill="#4a3755"/><path d="M0 368L15 371.8C30 375.7 60 383.3 90 385.8C120 388.3 150 385.7 180 387.7C210 389.7 240 396.3 270 397.7C300 399 330 395 360 392C390 389 420 387 450 387.8C480 388.7 510 392.3 540 394.8C570 397.3 600 398.7 630 393.2C660 387.7 690 375.3 720 375.8C750 376.3 780 389.7 810 393.7C840 397.7 870 392.3 885 389.7L900 387L900 451L885 451C870 451 840 451 810 451C780 451 750 451 720 451C690 451 660 451 630 451C600 451 570 451 540 451C510 451 480 451 450 451C420 451 390 451 360 451C330 451 300 451 270 451C240 451 210 451 180 451C150 451 120 451 90 451C60 451 30 451 15 451L0 451Z" fill="#453051"/><path d="M0 427L15 423.5C30 420 60 413 90 408C120 403 150 400 180 401C210 402 240 407 270 411C300 415 330 418 360 416.7C390 415.3 420 409.7 450 408.5C480 407.3 510 410.7 540 413.7C570 416.7 600 419.3 630 420.5C660 421.7 690 421.3 720 416.8C750 412.3 780 403.7 810 404.2C840 404.7 870 414.3 885 419.2L900 424L900 451L885 451C870 451 840 451 810 451C780 451 750 451 720 451C690 451 660 451 630 451C600 451 570 451 540 451C510 451 480 451 450 451C420 451 390 451 360 451C330 451 300 451 270 451C240 451 210 451 180 451C150 451 120 451 90 451C60 451 30 451 15 451L0 451Z" fill="#412a4c"/></svg>
